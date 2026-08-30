@@ -8,4 +8,9 @@ router = APIRouter()
 
 @router.post("/login", response_model=LoginRespons)
 def login(payload: LoginRequest, db: Session = Depends(get_db)):
-    return login_emp_controller(payload, db)
+    result = login_emp_controller(payload, db)
+    
+    if result is None:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
+    
+    return result

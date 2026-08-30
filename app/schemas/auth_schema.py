@@ -6,7 +6,6 @@ class LoginRequest(BaseModel):
 
 
 class LoginRespons(BaseModel):
-    id: int
-    name: str
-    email : str
+    access_token : str
+    token_type : str
     
