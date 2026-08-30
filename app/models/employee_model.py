@@ -14,6 +14,7 @@ class Employee(Base):
     department_id = Column(Integer, ForeignKey("departments.id"))
     salary = Column(Integer)
     address = Column(String, nullable=True)
+    password = Column(String, nullable=False)
 
     department = relationship("Department", back_populates="employees")
 

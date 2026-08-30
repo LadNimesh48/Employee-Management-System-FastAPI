@@ -3,10 +3,11 @@ from sqlalchemy.orm import Session, joinedload, selectinload
 from app.models.employee_model import Employee
 from app.models.skill_model import Skill
 from app.models.employee_profile import EmployeeProfile
-
 from app.schemas.employee_schema import EmployeeRequest
+from app.security.hash import hash_password
 from sqlalchemy import func, or_
 import time
+
 
 
 def get_all_emp_service(page: int, limit: int, sort_by:str, order: str, department: int, name: str, email: str, search: str, db: Session):
@@ -100,6 +101,7 @@ def create_emp_service(payload: EmployeeRequest, db: Session):
         # department=payload.department,
         salary=payload.salary,
         # address=payload.address,
+        password=hash_password(payload.password)
     )
     
     profile = EmployeeProfile(

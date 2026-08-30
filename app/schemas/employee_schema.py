@@ -12,6 +12,7 @@ class EmployeeRequest(BaseModel):
     email: EmailStr = Field(...)
     # department  : str       = Field(..., min_length=2)
     salary: float | int = Field(..., gt=0)
+    password : str = Field(..., min_length=6)
     profile : EmployeeProfileRequest
 
 
