@@ -43,3 +43,14 @@ class CustomeEmployeeResponse(BaseModel):
     city: Optional[str] = None
 
     model_config = {"from_attributes": True}
+
+
+
+class EmployeeByIDResponse(BaseModel):
+    id: int
+    name: str
+    email: EmailStr
+    role_id : int | None = None
+    profile_image: Optional[str] = None
+
+    model_config = ConfigDict(from_attribute=True)

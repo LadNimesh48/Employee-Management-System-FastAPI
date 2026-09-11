@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, File, Form, Query, HTTPException, status, UploadFile, BackgroundTasks
 from app.db.session import get_db
 from sqlalchemy.orm import Session
-from app.schemas.employee_schema import EmployeeRequest, EmployeeResponse, CustomeEmployeeResponse
+from app.schemas.employee_schema import EmployeeRequest, EmployeeResponse, CustomeEmployeeResponse, EmployeeByIDResponse
 from typing import Literal
 from pydantic import EmailStr
 from app.security.auth import get_current_user
@@ -9,7 +9,7 @@ from app.models.employee_model import Employee
 from app.security.permission import required_role
 from app.core.config import role_config
 
-from app.controllers.employee_controller import get_all_emp_controller, create_emp_controller, assign_employee_service
+from app.controllers.employee_controller import get_all_emp_controller, create_emp_controller, assign_employee_service, get_emp_ByID_controller, delete_emp_ByID_controller
 from app.schemas.employee_profile_schema import EmployeeProfileRequest
 
 router = APIRouter()
@@ -74,3 +74,13 @@ async def assign_skill(employee_id: int, skill_id: int, db: Session = Depends(ge
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Employee or Skill Not Found")
     
     return employee
+
+
+@router.get("/{employee_id}", response_model=EmployeeByIDResponse)
+def get_emp_ByID(employee_id : int,  db: Session = Depends(get_db)):
+    return get_emp_ByID_controller(employee_id, db)
+
+
+@router.delete("/{employee_id}/delete")
+def delete_emp_ByID(employee_id : int,  db: Session = Depends(get_db)):
+    return delete_emp_ByID_controller(employee_id, db)

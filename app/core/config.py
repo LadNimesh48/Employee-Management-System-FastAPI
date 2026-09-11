@@ -23,6 +23,11 @@ EMAIL_PORT= int(os.getenv("EMAIL_PORT"))
 EMAIL_ADDRESS=os.getenv("EMAIL_ADDRESS")
 EMAIL_PASSWORD=os.getenv("EMAIL_PASSWORD")
 
+# Redis Set-up
+REDIS_HOST="localhost"
+REDIS_PORT=6380
+REDIS_DB=0
+
 class RoleConfig(BaseSettings):
     USER_ROLE_ID: int = 1
     ADMIN_ROLE_ID: int = 2

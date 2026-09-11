@@ -8,7 +8,8 @@ from app.security.hash import hash_password
 from sqlalchemy import func, or_
 import time
 from app.utils.email import send_welcome_email
-
+from app.core.redis_server import redis_client
+import json
 
 
 def get_all_emp_service(page: int, limit: int, sort_by:str, order: str, department: int, name: str, email: str, search: str, db: Session):
@@ -120,6 +121,18 @@ def create_emp_service(background_tasks, payload: EmployeeRequest, image_path, d
     db.commit()
     db.refresh(new_employee)
     
+    # save Into Redis Using employee ID Key
+    
+    redis_client.set(
+        f"employee:{new_employee.id}",
+        json.dumps({
+            "id":new_employee.id,
+            "name": new_employee.name,
+            "email": new_employee.email,
+            "profile_image":new_employee.profile_image
+        })
+    )
+    
     # Send welcome email in background
     background_tasks.add_task(send_welcome_email,new_employee.email,new_employee.name)
     
@@ -148,3 +161,54 @@ def assign_employee_service(employee_id: int, skill_id: int, db: Session):
     db.refresh(employee)
     
     return {"msg" : "Skill Assigned Successfully"}
+
+
+def get_emp_ByID_service(employee_id : int,  db: Session):
+
+    start_time = time.perf_counter()
+
+    cache_key = f"employee:{employee_id}"
+    cached_employee = redis_client.get(cache_key)
+
+    if cached_employee:
+
+        end_time = time.perf_counter()
+        print(f"Total execution time: " f"{(end_time - start_time) * 1000:.2f} ms")
+
+        print('From Redis Server')
+        return json.loads(cached_employee)
+
+    print('From DB Server')
+    getEmployeeByID = (db.query(Employee).filter(Employee.id == employee_id).first())
+
+    if getEmployeeByID is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Employee Data Not Found of ID : {employee_id}")
+
+    # Convert SQLAlchemy object to dictionary
+    employee_data = {
+        column.name: getattr(getEmployeeByID, column.name)
+        for column in Employee.__table__.columns
+    }
+
+    redis_client.set(cache_key,json.dumps(employee_data, default=str),ex=3600)
+    print(f"Employee {employee_id} saved in Redis")
+
+    end_time = time.perf_counter()
+    print(f"Total execution time: " f"{(end_time - start_time) * 1000:.2f} ms")
+
+    return getEmployeeByID
+
+
+def delete_emp_ByID_service(employee_id: int, db: Session):
+
+    getEmployeeByID = db.query(Employee).filter(Employee.id == employee_id).first()
+
+    if getEmployeeByID is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="EMployee Data Not Found")
+
+    db.delete(getEmployeeByID)
+    db.commit()
+
+    redis_client.delete(f"employee:{employee_id}")
+
+    return {"msg": "Employee Deleted Successfully"}
