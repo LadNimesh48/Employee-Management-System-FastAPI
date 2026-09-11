@@ -21,3 +21,10 @@ class CurrentUserResponse(BaseModel):
     email: EmailStr
     # department_id: int | None = None
     # role: str
+
+class OTPRequest(BaseModel):
+    email: EmailStr
+
+class OTPverifyRequest(BaseModel):
+    email: EmailStr
+    otp: str

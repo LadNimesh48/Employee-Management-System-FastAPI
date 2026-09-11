@@ -1,12 +1,14 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Request
+from fastapi import APIRouter, Depends, HTTPException, status, Request, BackgroundTasks
 from app.db.session import get_db
 from sqlalchemy.orm import Session
-from app.schemas.auth_schema import LoginRequest, LoginRespons, RefreshTokenRequest, CurrentUserResponse
+from app.schemas.auth_schema import LoginRequest, LoginRespons, RefreshTokenRequest, CurrentUserResponse, OTPRequest, OTPverifyRequest
 from app.controllers.auth_controller import login_emp_controller, refresh_token_controller, login_google_user_controller
 from fastapi.security import OAuth2PasswordRequestForm
-from app.security.auth import get_current_user
+from app.security.auth import get_current_user, login_employee
 from app.models.employee_model import Employee
 from app.core.oauth import oauth
+from app.utils.otp import create_otp, verify_otp
+from app.utils.email import send_otp_email
 
 router = APIRouter()
 
@@ -54,3 +56,31 @@ async def google_callback(request: Request, db: Session = Depends(get_db)):
     print(google_access_token)
 
     return google_access_token
+
+
+@router.post("/request-otp")
+async def request_otp(background_tasks: BackgroundTasks, payload: OTPRequest, db: Session = Depends(get_db)):
+
+    result = create_otp(payload.email, db)
+
+    if not result:
+        raise HTTPException(status_code=status.HTTP_200_OK, detail="Employee not Found")
+
+    getEmployee, otp = result
+
+    background_tasks.add_task(send_otp_email, getEmployee.email, otp)
+
+    return {"status": True, "msg": f"OTP Send on email : {getEmployee.email}"}
+
+
+@router.post("/verify-otp")
+def check_verify_otp(payload: OTPverifyRequest, db: Session = Depends(get_db)):
+
+    employee = verify_otp(payload.email, payload.otp, db)
+
+    login = login_employee(employee, db)
+
+    if not login:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Employee not Found")
+
+    return login
