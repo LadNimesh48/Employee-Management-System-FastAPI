@@ -1,0 +1,15 @@
+.env
+.env.*
+
+__pycache__/
+*.py[cod]
+*.pyo
+
+emp_m_sys/
+
+uploads/
+
+.vscode/
+.idea/
+
+*.log
