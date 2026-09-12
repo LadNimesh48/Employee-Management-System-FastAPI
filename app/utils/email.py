@@ -4,6 +4,9 @@ from email.mime.text import MIMEText
 
 from app.core.config import EMAIL_HOST, EMAIL_PORT, EMAIL_ADDRESS, EMAIL_PASSWORD
 
+class TemppraryEmailError(Exception):
+    pass
+
 
 async def send_welcome_email(email: str, name: str):
 
@@ -56,6 +59,9 @@ async def send_email(email: str, subject: str, body: str):
             print(f"{subject} email has been sent TO : {email} !")
         return True
 
-    except Exception as e:
-        print(f"Email sending failed: {e}")
-        return False
+    except (smtplib.SMTPConnectError, smtplib.SMTPServerDisconnected, TimeoutError) as e:
+        
+        raise TemppraryEmailError("TemppraryEmailError email server error ") from e
+        
+        # print(f"Email sending failed: {e}")
+        # return False

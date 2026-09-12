@@ -10,6 +10,7 @@ import time
 from app.utils.email import send_welcome_email
 from app.core.redis_server import redis_client
 import json
+from app.tasks.email_task import send_welcome_email_task
 
 
 def get_all_emp_service(page: int, limit: int, sort_by:str, order: str, department: int, name: str, email: str, search: str, db: Session):
@@ -94,7 +95,7 @@ def get_all_emp_service(page: int, limit: int, sort_by:str, order: str, departme
 
     return result
 
-def create_emp_service(background_tasks, payload: EmployeeRequest, image_path, db: Session):
+def create_emp_service(payload: EmployeeRequest, image_path, db: Session):
 
     start_time = time.perf_counter()
     new_employee = Employee(
@@ -134,7 +135,8 @@ def create_emp_service(background_tasks, payload: EmployeeRequest, image_path, d
     )
     
     # Send welcome email in background
-    background_tasks.add_task(send_welcome_email,new_employee.email,new_employee.name)
+    # background_tasks.add_task(send_welcome_email,new_employee.email,new_employee.name)
+    send_welcome_email_task.delay(new_employee.email, new_employee.name)
     
     end_time = time.perf_counter()
     print(f"Total execution time: " f"{(end_time - start_time) * 1000:.2f} ms")

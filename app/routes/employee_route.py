@@ -34,8 +34,8 @@ async def get_employees(
 
 @router.post("/", response_model=EmployeeResponse)
 # async def create_emp(payload: EmployeeRequest, db: Session = Depends(get_db), current_user: Employee = Depends(required_role(role_config.MANAGER_ROLE_ID, role_config.ADMIN_ROLE_ID))):
+# async def create_emp(background_tasks: BackgroundTasks,name: str = Form(),email: EmailStr = Form(),salary: float | int = Form(),password: str = Form(),role_id: int = Form(),profile_image: UploadFile = File(...),phone: str = Form(),address: str = Form(),city: str = Form(),db: Session = Depends(get_db),current_user: Employee = Depends(required_role(role_config.MANAGER_ROLE_ID, role_config.ADMIN_ROLE_ID)),):
 async def create_emp(
-    background_tasks: BackgroundTasks,
     name: str = Form(),
     email: EmailStr = Form(),
     salary: float | int = Form(),
@@ -62,7 +62,8 @@ async def create_emp(
             ),
     )
 
-    return create_emp_controller(background_tasks,payload, profile_image, db)
+    # return create_emp_controller(background_tasks,payload, profile_image, db)
+    return create_emp_controller(payload, profile_image, db)
 
 
 @router.post("/{employee_id}/skills/{skill_id}")
